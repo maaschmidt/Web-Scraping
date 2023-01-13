@@ -12,18 +12,27 @@ const initBrowser = async (url: string) => {
 
   await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
-  // if (await page.$('#px-captcha')){
-  //   const iframe = await page.$('#px-captcha');
-  //   await iframe.evaluate((el) => el.style.display = 'flex');
-  //   await iframe.evaluate((el) => el.style.width = 20 + '%');
-    
-  //   await page.waitForTimeout(1500);
+  let iframe = await page.$('#px-captcha')
+  if (iframe) {
+    await pxCaptcha(iframe, 5000, page);
+  }
 
-  //   await page.click('#px-captcha', { button: 'right', clickCount: 3});
-    
-  //   await page.waitForNavigation({waitUntil: 'load', timeout: 600000})
-  // }
   return { page, browser };
+}
+
+const pxCaptcha = async (selector: any, time: number, page: any) => {
+  await selector.evaluate((el) => el.style.display = 'flex');
+  await selector.evaluate((el) => el.style.width = 20 + '%');
+  await page.waitForTimeout(time / 2);
+
+  while (await page.$('#px-captcha')) {
+    await page.click('#px-captcha', { button: 'left' })
+    await page.keyboard.press('Space', { delay: time })
+    await page.waitForTimeout(time);
+    time = + 2500;
+  }
+
+  await page.waitForNavigation({ waitUntil: 'load' })
 }
 
 export const getUrl = async (baseURL: string) => {
@@ -60,7 +69,7 @@ export const getCarInfos = async (baseURL: string) => {
   const { page, browser } = await initBrowser(baseURL);
 
   await page.waitForNetworkIdle();
-  const name = await page.$eval('.VehicleDetails__header__title', el => el.textContent.replace('\n', ' '));
+  const name = await page.$eval('.VehicleDetails__header__title', el => el.textContent.replace('\n', '/s'));
   const value = await page.$eval('.Forms__vehicleSendProposal__container__price', el => el.textContent);
   const fipe = await page.$eval('.VehicleDetailsFipe__price.VehicleDetailsFipe__price--fipe', el => el.textContent.replace(/[a-zA-QS-Z]+/g, '').replace(/\s/g, '').replace('$', '$ '));
   const grossDetails = await page.$$eval('.VehicleDetails__list__item', elements => {
@@ -70,21 +79,21 @@ export const getCarInfos = async (baseURL: string) => {
   await browser.close();
 
   let details: any = {};
-  let itens: any = []; 
+  let itens: any = [];
   grossDetails.map(detail => {
-    if(detail){
+    if (detail) {
       let splited = detail.split(': ');
-      if(splited[1]){
+      if (splited[1]) {
         splited[0] = splited[0].normalize('NFD').replace(/\s/g, '').replace(/[\u0300-\u036f]/g, "").toLowerCase();
         details[splited[0]] = splited[1]
-      } else if (splited[0] != 'undefined'){
+      } else if (splited[0] != 'undefined') {
         itens.push(splited[0])
       }
     }
   });
-  if (itens){
+  if (itens) {
     details.itens = itens;
   }
-  
-  return({ name, value, fipe, details });
+
+  return ({ name, value, fipe, details });
 }
