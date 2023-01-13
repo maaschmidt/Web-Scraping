@@ -1,0 +1,1 @@
+export * as getPagesInfos from './getInfos'
