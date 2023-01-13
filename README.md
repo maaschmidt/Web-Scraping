@@ -1,3 +1,3 @@
-# lista-eua-pres
+# lista-br-pres
 
-## Lista os presidentes americanos até 2024
+## Lista os presidentes brasileiros até 2026

@@ -6,7 +6,6 @@ export const getPersonalInfo = async function (url: string) {
     const html = await rp(url);
     return {
       name: ($('.firstHeading', html).text()),
-      birth: ($('[class="bday"]', html).text()).split("-").reverse().join("/")
     };
   } catch (err) { }
 }
