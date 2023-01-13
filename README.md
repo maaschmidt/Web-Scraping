@@ -1,15 +1,45 @@
-# Web-Scraping
+# Search CPF
 
-## :us: Repository to versioning my codes about my studies with Web Scraping
+### Com esta aplicação você pode consultar a situação de um CPF.
 
-This repository is separate in branchs, so you can find differently activities in another branch
+Para isto você deverá seguir os passos seguintes:
 
-So, you can see the branchs to follow my evolution
+1- Fazer o dowload desta branch
 
-##
+```bash
+wget https://github.com/maaschmidt/Web-Scraping/archive/refs/heads/search-cpf.zip
+```
 
-## :brazil: Repositório para versionar meus codigos sobre meus estudos com Web Scraping
+2- Extrair em seu diretório de preferencia
 
-Este repositório é separado em branchs, assim você pode encontrar diferentes atividades em outra branch.
+```bash
+unzip search-cpf.zip
+```
 
-Então, você pode ver as branchs para acompanhar minha evolução
+3- Instalar as dependencias
+
+```bash
+npm install
+```
+
+4- Inserir o CPF a ser consultado no arquivo src/index.js
+
+```javascript
+62 ...
+63 main('CPF AQUI')
+64
+
+// Exemplo:
+62 ...
+63 main('12345678901')
+64
+```
+ps: O CPF a ser consultado é de sua responsabilidade
+
+5- Rode a aplicação
+
+```bash
+npm run start
+```
+
+## Resultado esperado é um print screen da situação do CPF consultado.
