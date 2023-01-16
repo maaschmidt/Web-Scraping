@@ -31,8 +31,6 @@ const pxCaptcha = async (selector: any, time: number, page: any) => {
     await page.waitForTimeout(time);
     time = + 2500;
   }
-
-  await page.waitForNavigation({ waitUntil: 'load' })
 }
 
 export const getUrl = async (baseURL: string) => {
