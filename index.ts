@@ -3,7 +3,7 @@ import { checkPJ } from './src/checkPJ';
 
 const main = async (doc: string) => {
   let result: any
-  console.time('');
+  console.time('queryTime');
 
   if (doc.length === 11) {
     result = await checkPF(doc);
@@ -11,9 +11,8 @@ const main = async (doc: string) => {
     result = await checkPJ('<CNPJ>');
   }
 
-  console.timeEnd('');
+  console.timeEnd('queryTime');
   console.log(result);
 };
-
 
 main('<DOCUMENTO>');// Substituir <DOCUMENTO> pelo CPF ou CNPJ a ser consultado
