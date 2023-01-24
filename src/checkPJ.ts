@@ -105,6 +105,9 @@ export const checkPJ = async (cnpj: string) => {
   }
   finally {
     await browser.close();
+    while (response === '') {
+      checkPJ(cnpj);
+    }
     return { cnpj, response };
   }
 }
