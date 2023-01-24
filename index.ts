@@ -8,7 +8,7 @@ const main = async (doc: string) => {
   if (doc.length === 11) {
     result = await checkPF(doc);
   } else if (doc.length === 14) {
-    result = await checkPJ('<CNPJ>');
+    result = await checkPJ(doc);
   }
 
   console.timeEnd('queryTime');
