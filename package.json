@@ -4,15 +4,25 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
+    "pdf-parse": "^1.1.1",
     "puppeteer": "^19.5.0",
     "puppeteer-extra": "^3.3.4",
-    "puppeteer-extra-plugin-stealth": "^2.11.1"
+    "puppeteer-extra-plugin-recaptcha": "^3.6.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "request-promise-native": "^1.0.9",
+    "underscore": "^1.13.2",
+    "xmldom": "^0.6.0",
+    "async": "^3.2.3"
+  },
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.1",
+    "@types/request-promise-native": "^1.0.18"
   }
 }
