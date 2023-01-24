@@ -1,6 +1,6 @@
 # Certidão de débitos
 
-### Com esta aplicação você pode consultar a situação de um CPF ou CNPJ.
+### Com esta aplicação você pode consultar a Certidão de Débitos Relativos a Créditos Tributários Federais e à Dívida Ativa da União de um CPF ou CNPJ.
 
 Para isto você deverá seguir os passos seguintes:
 
