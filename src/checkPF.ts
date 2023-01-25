@@ -4,17 +4,9 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import pdf from 'pdf-parse';
 import rp from 'request-promise-native';
 
-const pageURL = 'https://solucoes.receita.fazenda.gov.br/Servicos/certidaointernet/PF/Emitir';
+const pageURL = 'https://projudi.tjgo.jus.br/CertidaoNegativaPositivaPublica';
 
-const waitForTimeout = async (seconds: number) => {
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(function () {
-      resolve();
-    }, seconds * 1000);
-  });
-};
-
-export const checkPF = async (cpf: string) => {
+export const checkPF = async (name: string, cpf: string, motherName: string, birthDate: string) => {
   let response: string = '';
 
   puppeteer.use(StealthPlugin());
@@ -23,18 +15,20 @@ export const checkPF = async (cpf: string) => {
     headless: true,
     executablePath: executablePath(),
     defaultViewport: null,
-    slowMo: 100
+    slowMo: 20
   })
 
   const page = await browser.newPage();
 
   try {
-    await waitForTimeout(3)
 
     await page.goto(pageURL);
 
+    await page.setRequestInterception(true);
+
     page.on('request', async (request) => {
-      if (request.url().startsWith(`https://solucoes.receita.fazenda.gov.br/Servicos/certidaointernet/PF/Emitir/Emitir?Ni=${cpf}`)) {
+
+      if (request.url().startsWith(`https://projudi.tjgo.jus.br/CertidaoNegativaPositivaPublica`)) {
 
         const options = {
           method: request.method(),
@@ -50,57 +44,46 @@ export const checkPF = async (cpf: string) => {
         try {
           const ret = await rp(options);
 
-          if (ret.startsWith('%PDF')) {
-            const pdfText = await pdf(Buffer.from(ret, 'binary'));
+          const pdfText = await pdf(Buffer.from(ret, 'binary'));
 
-            if (pdfText.text.match('CERTIDÃO NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA')) {
-              response = `CERTIDÃO NEGATIVA`;
-              return response;
-            }
+          if (pdfText.text.match('NADA CONSTA')) {
+            request.abort();
+            response = 'NADA CONSTA';
           }
-
-        } catch (error) { }
+          
+        } catch (error) {
+          console.log('CATCH 1 => ', error.message)
+        }
       }
     });
+    
+    await page.waitForSelector('#Nome', { visible: true });
+    
+    await page.click('#Nome');
+    
+    await page.keyboard.type(name);
 
-    await page.waitForSelector('#NI', { visible: true, timeout: 5000 });
-
-    await page.click('#NI');
-
+    await page.click('#Cpf');
+    
     await page.keyboard.type(cpf);
-
-    await page.click('#validar');
-
-    await page.waitForSelector('.modalLoading', { hidden: false })
-
-    await page.waitForSelector('.modalLoading', { hidden: true })
-
-    if (await page.$eval('#mensagem', (el) => el.textContent === 'CPF inválido')) {
-      // CPF INVÁLIDO
-      response = `CPF INVÁLIDO`;
-      return response;
-    } else if (await page.$('#FrmSelecao > a:nth-child(6)')) {
-      // NEGATIVO, CERTIDÃO JÁ EMITIDA
-      await page.click('#FrmSelecao > a:nth-child(6)');
-    }
-
-    await page.waitForSelector('.avaliacao')
-
-    if (await page.$('#rfb-main-container > div > a:nth-child(6)')) {
-      // POSSIVELMENTE POSITIVO
-      response = `POSSIVELMENTE POSITIVO`;
-      return response;
-    } else if (await page.$('#rfb-main-container > div > a')) {
-      // CPF PENDENTE DE REGULARIZAÇÃO
-      response = `PENDENTE DE REGULARIZAÇÃO`;
-      return response;
-    }
-  } catch (error) { }
-  finally {
+    
+    await page.click('#NomeMae');
+    
+    await page.keyboard.type(motherName);
+    
+    await page.click('#DataNascimento');
+    
+    await page.keyboard.type(birthDate);
+    
+    await page.click('#divEditar > fieldset:nth-child(1) > input[type=radio]:nth-child(22)');
+    
+    await page.click('input[name="imgSubmeter"]');
+    
+  } catch (error) {
+    console.log('CATCH 2 => ', error.message);
+  } finally {
     await browser.close();
-    while (response === '') {
-      checkPF(cpf);
-    }
-    return { cpf, response };
+    
+    return response;
   }
 }

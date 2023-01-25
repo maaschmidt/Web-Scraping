@@ -4,17 +4,9 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import pdf from 'pdf-parse';
 import rp from 'request-promise-native';
 
-const pageURL = 'https://solucoes.receita.fazenda.gov.br/Servicos/certidaointernet/PJ/Emitir';
+const pageURL = 'https://projudi.tjgo.jus.br/CertidaoNegativaPositivaPublicaPJ';
 
-const waitForTimeout = async (seconds: number) => {
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(function () {
-      resolve();
-    }, seconds * 1000);
-  });
-};
-
-export const checkPJ = async (cnpj: string) => {
+export const checkPJ = async (name: string, cnpj: string, type: string = 'civel') => {
   let response: string = '';
 
   puppeteer.use(StealthPlugin());
@@ -23,18 +15,20 @@ export const checkPJ = async (cnpj: string) => {
     headless: true,
     executablePath: executablePath(),
     defaultViewport: null,
-    slowMo: 100
+    slowMo: 20
   })
 
   const page = await browser.newPage();
 
   try {
-    await waitForTimeout(3);
 
     await page.goto(pageURL);
 
+    await page.setRequestInterception(true);
+
     page.on('request', async (request) => {
-      if (request.url().startsWith(`https://solucoes.receita.fazenda.gov.br/Servicos/certidaointernet/PJ/Emitir/Emitir?Ni=${cnpj}`)) {
+
+      if (request.url().startsWith(`https://projudi.tjgo.jus.br/CertidaoNegativaPositivaPublica`)) {
 
         const options = {
           method: request.method(),
@@ -50,61 +44,44 @@ export const checkPJ = async (cnpj: string) => {
         try {
           const ret = await rp(options);
 
-          if (ret.startsWith('%PDF')) {
-            const pdfText = await pdf(Buffer.from(ret, 'binary'));
+          const pdfText = await pdf(Buffer.from(ret, 'binary'));
 
-            if (pdfText.text.match('CERTIDÃO NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA')) {
-              response = `CERTIDÃO NEGATIVA`;
-              return response;
-            } else if (pdfText.text.match('CERTIDÃO POSITIVA COM EFEITOS DE NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS')) {
-              response = `POSITIVA COM EFEITOS DE NEGATIVA`;
-              return response;
-            }
+          if (pdfText.text.match('NADA CONSTA')) {
+            request.abort();
+            response = 'NADA CONSTA';
           }
+
         } catch (error) {
-          console.log(error.message);
+          console.log('CATCH 1 => ', error.message)
         }
       }
     });
 
-    await page.waitForSelector('#NI', { visible: true, timeout: 5000 });
+    await page.waitForSelector('#divEditar > fieldset:nth-child(1) > input[type=radio]:nth-child(4)', { visible: true });
 
-    await page.click('#NI');
+    if(type.toLowerCase() === 'civel'){
+      await page.click('#divEditar > fieldset:nth-child(1) > input[type=radio]:nth-child(4)');
+    } else if(type.toLowerCase() === 'criminal'){
+      await page.click('#divEditar > fieldset:nth-child(1) > input[type=radio]:nth-child(5)');
+    }
+
+    await page.click('#RazaoSocial');
+
+    await page.keyboard.type(name);
+
+    await page.click('#Cnpj');
 
     await page.keyboard.type(cnpj);
 
-    await page.click('#validar');
+    await page.click('#divGuiaCriminalCivelGratuita > input[type=radio]:nth-child(12)');
 
-    await page.waitForSelector('.modalLoading', { hidden: false })
-
-    await page.waitForSelector('.modalLoading', { hidden: true })
-
-    if (await page.$('#FrmSelecao > a:nth-child(6)')) {
-      // NEGATIVO, CERTIDÃO JÁ EMITIDA
-      await page.click('#FrmSelecao > a:nth-child(6)');
-    }
-
-    await page.waitForSelector('.avaliacao')
-
-    if (await page.$('#rfb-main-container > div > a:nth-child(6)')) {
-      // POSSIVELMENTE POSITIVO
-      response = `POSSIVELMENTE POSITIVO`;
-      return response;
-    } else if (await page.$eval('.parametros.group-inline', (el) => el.textContent.match('A certidão deve ser emitida para o CNPJ da matriz'))) {
-      // A certidão deve ser emitida para o CNPJ da matriz
-      response = `A certidão deve ser emitida para o CNPJ da matriz`;
-      return response;
-    } else if (await page.$eval('.parametros.group-inline', (el) => el.textContent.match('O número informado não consta do cadastro CNPJ.'))) {
-      // CNPJ INVÁLIDO
-      response = `CNPJ INVÁLIDO`;
-      return response;
-    }
+    await page.click('input[name="imgSubmeter"]');
 
   } catch (error) {
-    console.log(error.message)
-  }
-  finally {
+    console.log('CATCH 2 => ', error.message);
+  } finally {
     await browser.close();
-    return { cnpj, response };
+
+    return response;
   }
 }
