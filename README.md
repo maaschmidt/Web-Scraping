@@ -1,24 +1,24 @@
-# Certidão de débitos
+# Certidão Nada Consta
 
-### Com esta aplicação você pode consultar a Certidão de Débitos Relativos a Créditos Tributários Federais e à Dívida Ativa da União de um CPF ou CNPJ.
+### Com esta aplicação você pode consultar a Certidão Nada Consta de um CPF ou CNPJ.
 
 Para isto você deverá seguir os passos seguintes:
 
 1- Fazer o dowload desta branch
 
 ```bash
-wget https://github.com/maaschmidt/Web-Scraping/archive/refs/heads/certidao-debitos.zip
+wget https://github.com/maaschmidt/Web-Scraping/archive/refs/heads/07-nada-consta.zip
 ```
 
 2- Extrair em seu diretório de preferencia
 
 ```bash
-unzip certidao-debitos.zip
+unzip 07-nada-consta.zip
 ```
 
 3- Acessar a pasta extraida
 ```bash
-cd Web-Scraping-certidao-debitos/
+cd Web-Scraping-07-nada-consta/
 ```
 
 4- Instalar as dependencias
@@ -27,10 +27,14 @@ cd Web-Scraping-certidao-debitos/
 npm install
 ```
 
-6- Inserir o CPF ou CNPJ a ser consultado no arquivo ./index.ts
+6- Inserir as informações a serem consultadas no arquivo ./index.ts
 
-```bash
-main('<DOCUMENTO>') 
+```typescript
+// Para pesquisar uma pessoa fisica(PF)
+main('<NOME COMPLETO>', '<CPF>', '<NOME DA MÃE>', '<DATA DE NASCIMENTO>');
+
+// Para pesquisar uma pessoa jurídica(PJ)
+main('<RAZÃO SOCIAL>', '<CNPJ>', '<TIPO?(civel ou criminal)>');
 
 ```
 
@@ -40,4 +44,4 @@ main('<DOCUMENTO>')
 npm run start
 ```
 
-## Resultado esperado é o console log da situação do CPF ou do CNPJ, mais o tempo de consulta
+## Resultado esperado é o console log da situação da PF ou da PJ, mais o tempo de consulta
