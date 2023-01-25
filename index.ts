@@ -18,4 +18,4 @@ const main = async (name: string, doc: string, motherName?: string, birthDate?: 
 
 main('<NOME COMPLETO>', '<CPF>', '<NOME DA MÃE>', '<DATA DE NASCIMENTO>');
 
-// main('<RAZÃO SOCIAL>', '<CNPJ>', <TIPO?(civel ou criminal)>);
+// main('<RAZÃO SOCIAL>', '<CNPJ>', '<TIPO?(civel ou criminal)>');
